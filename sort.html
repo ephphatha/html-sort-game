@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Sorting Algorithms</title>
+    <style>
+        #itemContainer>* {
+            padding: 0.5em;
+            min-width: 2em;
+            display: inline-block;
+            text-align: center;
+        }
+
+        #itemContainer>.selected {
+            border: 1px solid rebeccapurple;
+        }
+
+        button {
+            margin: 0.5em;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <div>
+            <label>Number of elements:
+                <input type="number" id="itemCount" name="itemCount" value="4" min="4" step="1">
+            </label>
+            <span>Lives <span id="lives">3</span></span>
+            <button type="button" onclick="init();">Restart</button>
+        </div>
+        <div id="itemContainer">
+        </div>
+        <div>
+            <button type="button" onclick="swap();">Swap</button>
+            <button type="button" onclick="next();">Next</button>
+        </div>
+    </main>
+</body>
+
+<script>
+    let timeStarted = undefined;
+    let ignoreNextKeypress = false;
+
+    function getItemContainer() {
+        return document.getElementById('itemContainer');
+    }
+
+    function getItems() {
+        return getItemContainer().children;
+    }
+
+    function getItemCountElement() {
+        return document.getElementById('itemCount');
+    }
+
+    function init() {
+        timeStarted = undefined;
+        document.getElementById('lives').textContent = 3;
+        const targetLength = Number.parseInt(getItemCountElement().value);
+
+        const itemContainer = getItemContainer();
+        const items = itemContainer.children;
+        while (items.length > targetLength) {
+            itemContainer.removeChild(itemContainer.lastChild);
+        }
+        for (let i = 0; i < targetLength; ++i) {
+            if (i >= items.length) {
+                itemContainer.appendChild(document.createElement('span'));
+            }
+            items[i].textContent = (Math.random() * 100).toFixed(0);
+        }
+
+        selectItem(0);
+    }
+
+    function selectItem(index) {
+        const items = getItems();
+        for (let i = 0; i < items.length; ++i) {
+            if (i == index || i == index + 1) {
+                items[i].className = 'selected';
+            } else {
+                items[i].className = '';
+            }
+        }
+    }
+
+    function swap() {
+        const selectedItems = document.getElementsByClassName('selected');
+
+        if (selectedItems.length == 2) {
+            const tempValue = selectedItems[0].textContent;
+            selectedItems[0].textContent = selectedItems[1].textContent;
+            selectedItems[1].textContent = tempValue;
+        }
+
+        next();
+    }
+
+    function next() {
+        if (timeStarted == undefined) {
+            timeStarted = Date.now();
+        }
+
+        const items = getItems();
+        let selectedItem = -1;
+
+        for (let i = 0; i < items.length; ++i) {
+            if (items[i].className == 'selected') {
+                selectedItem = i;
+                break;
+            }
+        }
+
+        if (selectedItem >= items.length - 2) {
+            window.setTimeout(promptForEndState);
+        } else {
+            selectItem(selectedItem + 1);
+        }
+    }
+
+    function promptForEndState() {
+        ignoreNextKeypress = true;
+        if (window.confirm("Have you finished sorting the numbers?")) {
+            if (checkItemsAreSorted()) {
+                window.alert("Well done, you've sorted the numbers in " + ((Date.now() - timeStarted) / 1000) + " seconds");
+                const itemCountElement = getItemCountElement();
+                itemCountElement.value = Number.parseInt(itemCountElement.value) + 2;
+                init();
+                return;
+            } else {
+                removeLife();
+                window.alert("The list is not sorted, keep going.");
+            }
+        }
+        selectItem(0);
+    }
+
+    function checkItemsAreSorted() {
+        const items = getItems();
+
+        for (let i = 1; i < items.length; ++i) {
+            if (Number.parseInt(items[i - 1].textContent) > Number.parseInt(items[i].textContent)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function removeLife() {
+        const livesElement = document.getElementById('lives');
+        let lives = Number.parseInt(livesElement.textContent);
+
+        if (lives > 0) {
+            livesElement.textContent = --lives;
+        } else {
+            const itemCountElement = getItemCountElement();
+            itemCountElement.value = Math.max(Number.parseInt(itemCountElement.value) - 2, 4);
+            window.alert("You've run out of lives, please try again.");
+            init();
+        }
+    }
+
+    document.addEventListener('keyup', (event) => {
+        if (event.defaultPrevented) {
+            return; // Do nothing if the event was already processed
+        }
+
+
+        switch (event.key) {
+            case " ":
+                ignoreNextKeypress = false;
+                swap();
+                break;
+            case "Escape":
+                if (ignoreNextKeypress) {
+                    ignoreNextKeypress = false;
+                    return;
+                }
+                next();
+                break;
+            default:
+                return;
+        }
+
+        event.preventDefault();
+    }, true)
+
+    window.onload = init;
+</script>
+
+</html>
