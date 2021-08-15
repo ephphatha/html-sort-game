@@ -4,14 +4,15 @@
 <head>
     <title>Sorting Algorithms</title>
     <style>
-        #itemContainer>* {
+        item {
             padding: 0.5em;
             min-width: 2em;
             display: inline-block;
             text-align: center;
+            border: 1px solid transparent;
         }
 
-        #itemContainer>.selected {
+        item.selected {
             border: 1px solid rebeccapurple;
         }
 
@@ -30,6 +31,7 @@
             <span>Lives <span id="lives">3</span></span>
             <button type="button" onclick="init();">Restart</button>
         </div>
+        <div id="historyContainer"></div>
         <div id="itemContainer">
         </div>
         <div>
@@ -42,6 +44,10 @@
 <script>
     let timeStarted = undefined;
     let ignoreNextKeypress = false;
+
+    function getHistoryContainer() {
+        return document.getElementById('historyContainer');
+    }
 
     function getItemContainer() {
         return document.getElementById('itemContainer');
@@ -61,6 +67,12 @@
 
     function init() {
         timeStarted = undefined;
+
+        const history = getHistoryContainer();
+        while (history.firstChild) {
+            history.removeChild(history.firstChild);
+        }
+
         document.getElementById('lives').textContent = 3;
         const targetLength = Number.parseInt(getItemCountElement().value);
 
@@ -71,7 +83,7 @@
         }
         for (let i = 0; i < targetLength; ++i) {
             if (i >= items.length) {
-                itemContainer.appendChild(document.createElement('span'));
+                itemContainer.appendChild(document.createElement('item'));
             }
             items[i].textContent = (Math.random() * 100).toFixed(0);
         }
@@ -148,6 +160,19 @@
                 removeLife("The list is not sorted.");
             }
         }
+        newPass();
+    }
+
+    function newPass() {
+        const historyContainer = getHistoryContainer();
+        historyContainer.appendChild(document.createElement('div'));
+
+        for (const item of getItems()) {
+            const historyElement = document.createElement('item');
+            historyElement.textContent = item.textContent;
+            historyContainer.lastChild.appendChild(historyElement);
+        }
+        historyContainer.lastChild.appendChild(document.createTextNode("After pass " + historyContainer.children.length));
         selectItem(0);
     }
 
