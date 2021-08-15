@@ -51,6 +51,10 @@
         return getItemContainer().children;
     }
 
+    function getSelectedItems() {
+        return document.getElementsByClassName('selected');
+    }
+
     function getItemCountElement() {
         return document.getElementById('itemCount');
     }
@@ -87,12 +91,16 @@
     }
 
     function swap() {
-        const selectedItems = document.getElementsByClassName('selected');
+        const selectedItems = getSelectedItems();
 
         if (selectedItems.length == 2) {
-            const tempValue = selectedItems[0].textContent;
-            selectedItems[0].textContent = selectedItems[1].textContent;
-            selectedItems[1].textContent = tempValue;
+            if (shouldSwapItems(selectedItems[0], selectedItems[1])) {
+                const tempValue = selectedItems[0].textContent;
+                selectedItems[0].textContent = selectedItems[1].textContent;
+                selectedItems[1].textContent = tempValue;
+            } else {
+                removeLife("You should not swap these items.");
+            }
         }
 
         next();
@@ -104,19 +112,26 @@
         }
 
         const items = getItems();
-        let selectedItem = -1;
+        let selectedIndex = -1;
 
         for (let i = 0; i < items.length; ++i) {
             if (items[i].className == 'selected') {
-                selectedItem = i;
+                selectedIndex = i;
                 break;
             }
         }
 
-        if (selectedItem >= items.length - 2) {
+        if (selectedIndex >= 0 || selectedIndex < items.length - 2) {
+            if (shouldSwapItems(items[selectedIndex], items[selectedIndex + 1])) {
+                removeLife("You should swap these items.");
+                return;
+            }
+        }
+
+        if (selectedIndex >= items.length - 2) {
             window.setTimeout(promptForEndState);
         } else {
-            selectItem(selectedItem + 1);
+            selectItem(selectedIndex + 1);
         }
     }
 
@@ -130,11 +145,14 @@
                 init();
                 return;
             } else {
-                removeLife();
-                window.alert("The list is not sorted, keep going.");
+                removeLife("The list is not sorted.");
             }
         }
         selectItem(0);
+    }
+
+    function shouldSwapItems(lhs, rhs) {
+        return Number.parseInt(lhs.textContent) > Number.parseInt(rhs.textContent)
     }
 
     function checkItemsAreSorted() {
@@ -149,16 +167,17 @@
         return true;
     }
 
-    function removeLife() {
+    function removeLife(promptText) {
         const livesElement = document.getElementById('lives');
         let lives = Number.parseInt(livesElement.textContent);
 
         if (lives > 0) {
             livesElement.textContent = --lives;
+            window.setTimeout(window.alert, 0, promptText + " Lose a life.");
         } else {
             const itemCountElement = getItemCountElement();
             itemCountElement.value = Math.max(Number.parseInt(itemCountElement.value) - 2, 4);
-            window.alert("You've run out of lives, please try again.");
+            window.alert(promptText + " You've run out of lives, please try again.");
             init();
         }
     }
@@ -167,7 +186,6 @@
         if (event.defaultPrevented) {
             return; // Do nothing if the event was already processed
         }
-
 
         switch (event.key) {
             case " ":
