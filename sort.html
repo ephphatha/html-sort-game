@@ -113,10 +113,16 @@
     function selectItem(index) {
         const items = getItems();
         for (let i = 0; i < items.length; ++i) {
+            if (i >= index) {
+                items[i].classList.remove('dirty');
+            }
+            
             if (i == index || i == index + 1) {
-                items[i].className = 'selected';
+                if (!items[i].classList.contains('selected')) {
+                    items[i].classList.add('selected');
+                }
             } else {
-                items[i].className = '';
+                items[i].classList.remove('selected');
             }
         }
     }
@@ -127,6 +133,7 @@
         if (selectedItems.length == 2) {
             if (shouldSwapItems(selectedItems[0], selectedItems[1])) {
                 swapItems(selectedItems[0], selectedItems[1]);
+                selectedItems[0].classList.add('dirty');
             } else {
                 removeLife("You should not swap these items.");
             }
@@ -144,7 +151,7 @@
         let selectedIndex = -1;
 
         for (let i = 0; i < items.length; ++i) {
-            if (items[i].className == 'selected') {
+            if (items[i].classList.contains('selected')) {
                 selectedIndex = i;
                 break;
             }
@@ -166,14 +173,16 @@
 
     function promptForEndState() {
         if (window.confirm("Have you finished sorting the numbers?")) {
-            if (checkItemsAreSorted()) {
+            if (hasDirtyItems()) {
+                removeLife("You must continue making passes until you do a pass without making a swap.");
+            } else if (checkItemsAreSorted()) {
                 window.alert("Well done, you've sorted the numbers in " + ((Date.now() - timeStarted) / 1000) + " seconds");
                 const itemCountElement = getItemCountElement();
                 itemCountElement.value = Number.parseInt(itemCountElement.value) + 2;
                 init();
                 return;
             } else {
-                removeLife("You must continue making passes until you do a pass without making a swap.");
+                removeLife("The list still needs more passes to be fully sorted.");
             }
         }
         newPass();
@@ -200,6 +209,10 @@
         const tempValue = lhs.textContent;
         lhs.textContent = rhs.textContent;
         rhs.textContent = tempValue;
+    }
+
+    function hasDirtyItems() {
+        return !!document.querySelector('item.dirty');
     }
 
     function checkItemsAreSorted() {
