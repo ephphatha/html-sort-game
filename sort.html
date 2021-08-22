@@ -136,6 +136,7 @@
                 selectedItems[0].classList.add('dirty');
             } else {
                 removeLife("You should not swap these items.");
+                return;
             }
         }
 
@@ -183,6 +184,12 @@
                 return;
             } else {
                 removeLife("The list still needs more passes to be fully sorted.");
+            }
+        } else {
+            if (!hasDirtyItems() && checkItemsAreSorted()) {
+                removeLife("You finished a pass without making a swap. The list is sorted.")
+                window.setTimeout(promptForEndState);
+                return;
             }
         }
         newPass();
